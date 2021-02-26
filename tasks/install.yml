@@ -1,0 +1,23 @@
+---
+- name: Install 32-bit Variant of mongoDB
+  include_tasks: install-64bit.yml
+  when:
+    - ansible_facts.userspace_bits == "32"
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "buster"
+
+- name: Install 64-bit Variant of mongoDB
+  include_tasks: install-64bit.yml
+  when:
+    - ansible_facts.userspace_bits == "64"
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "buster"
+
+- name: adding existing admin-users to group mongodb
+  user:
+    name: '{{ item.name }}'
+    groups: mongodb
+    append: yes
+  become: yes
+  with_items: 
+    - "{{ admin_users }}"

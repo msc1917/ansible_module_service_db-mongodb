@@ -1,0 +1,7 @@
+---
+- name: Install Mongodb-Package
+  apt:
+    name: [ "mongodb" ]
+    state: present
+    update_cache: no
+  become: yes

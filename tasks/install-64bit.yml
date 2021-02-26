@@ -1,0 +1,54 @@
+---
+- name: Install prerequisites
+  apt:
+    name: [ 'libssl-dev' ]
+    state: present
+    update_cache: no
+  become: yes
+
+- name: Register Keys for MongoDB repository
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - https://www.mongodb.org/static/pgp/server-4.4.asc
+  when: 
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "buster"
+
+- name: Add nodesorce repository for Debian
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: no
+  become: yes
+  with_items:
+    - deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse
+  when: 
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "buster"
+
+- name: Install MongoDB-Package
+  apt:
+    name: [ "mongodb-org" ]
+    state: present
+    update_cache: no
+  become: yes
+
+- name: Start MongoDB-SystemD-Daemon 
+  ansible.builtin.systemd:
+    state: started
+    name: mongod
+    enabled: yes
+    daemon_reload: yes
+  become: yes
+
+- name: adding existing admin-users to group MongoDB
+  user:
+    name: '{{ item.name }}'
+    groups: mongodb
+    append: yes
+  become: yes
+  with_items: 
+    - "{{ admin_users }}"
